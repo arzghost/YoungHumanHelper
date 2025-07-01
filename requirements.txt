@@ -1,0 +1,5 @@
+Flask==2.3.3
+python-dotenv==1.0.1
+together==1.0.8
+markdown2==2.4.10
+requests==2.31.0

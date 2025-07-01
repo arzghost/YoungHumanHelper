@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Как устроен мир?</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <h1>🌍 Как устроен мир?</h1>
+
+    <div class="roles">
+        {% set role_labels = {
+            "academic": "🔬 Опытный учёный",
+            "phd": "🧪 Молодой учёный",
+            "student": "📚 Старшеклассник",
+            "peer": "🧑‍🎓 Школьник"
+        } %}
+        {% for key, label in role_labels.items() %}
+            <label class="role-btn {% if style == key %}selected{% endif %}">
+                {{ label }}
+                <input type="radio" name="style" value="{{ key }}" {% if style == key %}checked{% endif %} hidden>
+            </label>
+        {% endfor %}
+    </div>
+
+    <form id="questionForm" method="post">
+        <textarea name="question" placeholder="Задайте ваш вопрос о мире...">{{ question }}</textarea><br>
+
+        <!-- Скрытое поле для отправки стиля -->
+        <input type="hidden" id="style_input" name="style" value="{{ style }}">
+
+        <button type="submit">❓ Спросить</button>
+    </form>
+
+    <div class="status" id="statusBox">
+        {% if status %}
+            {% if status == "Генерирую ответ..." %}
+                <span class="loader"></span>
+            {% endif %}
+            {{ status }}
+        {% endif %}
+    </div>
+
+    {% if html_answer %}
+        <div class="output-box">{{ html_answer | safe }}</div>
+    {% endif %}
+
+    <div class="history-toggle" onclick="toggleHistory()">📜 Показать историю запросов</div>
+
+    <div id="historyBox" style="display: none;">
+        {% if history %}
+            <table>
+                <tr>
+                    <th>Время</th>
+                    <th>Вопрос</th>
+                    <th>Роль</th>
+                    <th>Ответ</th>
+                </tr>
+                {% for entry in history %}
+                    <tr>
+                        <td>{{ entry.timestamp }}</td>
+                        <td>{{ entry.question }}</td>
+                        <td>{{ role_labels.get(entry.style, entry.style) }}</td>
+                        <td>{{ entry.html_answer | safe }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>История пуста.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleHistory() {
+            const box = document.getElementById("historyBox");
+            box.style.display = box.style.display === "none" ? "block" : "none";
+        }
+
+        // Обновляем hidden input при выборе роли
+        document.querySelectorAll(".role-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                // Убираем выделение со всех
+                document.querySelectorAll(".role-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+
+                // Получаем стиль и обновляем hidden input
+                const styleValue = btn.querySelector("input[type='radio']").value;
+                document.getElementById("style_input").value = styleValue;
+            });
+        });
+    </script>
+
+    <script>
+        // Обработка выбора роли
+        document.querySelectorAll(".role-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".role-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+                const styleValue = btn.querySelector("input[type='radio']").value;
+                document.getElementById("style_input").value = styleValue;
+            });
+        });
+
+        // Обработка отправки формы
+        document.getElementById("questionForm").addEventListener("submit", function () {
+            const statusBox = document.getElementById("statusBox");
+            statusBox.innerHTML = '<span class="loader"></span> Генерирую ответ...';
+            statusBox.style.display = 'block';
+        });
+
+        // Показ истории
+        function toggleHistory() {
+            const box = document.getElementById("historyBox");
+            box.style.display = box.style.display === "none" ? "block" : "none";
+        }
+    </script>
+
+</body>
+</html>
